@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 class Coder:
     def __init__(self):
         self.level = 0
@@ -36,6 +39,11 @@ class Coder:
         if '@derivedFrom' not in peripheral:
             self.peripherals[peripheral['name']] = peripheral
         detailed_info = peripheral if '@derivedFrom' not in peripheral else self.peripherals[peripheral['@derivedFrom']]
+        peripheral_size = int(detailed_info['addressBlock']['size'], 0)
+        registers_by_offset = defaultdict(list)
+        # If there is just one register, ensure that it still is presented as a list
+        for register in list_if_item(detailed_info['registers']['register']):
+            registers_by_offset[int(register['addressOffset'], 0)].append(register)
         self.emit_line('/**')
         self.emit_line(' * @brief {}'.format(strip(detailed_info['description'])))
         self.emit_line(' *')
@@ -43,9 +51,29 @@ class Coder:
         self.emit_line(' */')
         self.emit_line('struct {} {}'.format(peripheral['name'], '{'))
         self.step_forward()
-        # If there is just one register, ensure that it still is presented as a list
-        for register in list_if_item(detailed_info['registers']['register']):
-            self.emit_register(register)
+        offset = 0
+        padding_index = 0
+        while offset < peripheral_size:
+            num_unused_bytes = 0
+            while offset < peripheral_size and offset not in registers_by_offset:
+                num_unused_bytes += 1
+                offset += 1
+            if num_unused_bytes != 0:
+                self.emit_line('char padding_{}[0x{:02x}];\n'.format(padding_index, num_unused_bytes))
+                padding_index += 1
+            if offset in registers_by_offset:
+                registers_at_offset = registers_by_offset[offset]
+                if len(registers_at_offset) == 1:
+                    self.emit_register(registers_at_offset[0])
+                else:
+                    name = '{}_variants'.format(registers_at_offset[0]['name'])
+                    self.emit_line('union {} {}'.format(name, '{'))
+                    self.step_forward()
+                    for register in registers_at_offset:
+                        self.emit_register(register)
+                    self.step_backward()
+                    self.emit_line('{} {}_;\n'.format('}', name.lower()))
+                offset += int(registers_at_offset[0]['size'], 0) / 8
         self.step_backward()
         self.emit_line('};\n')
 
@@ -56,10 +84,10 @@ class Coder:
             return
         # Note: do not assume hex. The source files are inconsistent (32 means 32, not 50!)
         register_num_bits = int(register['size'], 0)
-        bits = {}
+        fields_by_bit_offset = {}
         # If there is just one field, ensure that it still is presented as a list
         for field in list_if_item(register['fields']['field']):
-            bits[int(field['bitOffset'])] = field
+            fields_by_bit_offset[int(field['bitOffset'], 0)] = field
         self.emit_line('/**')
         self.emit_line(' * @brief {}'.format(strip(register['description'])))
         self.emit_line(' *')
@@ -70,13 +98,13 @@ class Coder:
         bit_index = 0
         while bit_index < register_num_bits:
             num_unused_bits = 0
-            while bit_index < register_num_bits and bit_index not in bits:
+            while bit_index < register_num_bits and bit_index not in fields_by_bit_offset:
                 num_unused_bits += 1
                 bit_index += 1
             if num_unused_bits != 0:
                 self.emit_line('unsigned : {};'.format(num_unused_bits))
-            if bit_index in bits:
-                bit_info = bits[bit_index]
+            if bit_index in fields_by_bit_offset:
+                bit_info = fields_by_bit_offset[bit_index]
                 width = int(bit_info['bitWidth'], 0)
                 field_type = "bool" if width == 1 else "unsigned"
                 self.emit_line('{} {}: {}; /**< {} */'.format(field_type, bit_info['name'], width,
@@ -85,7 +113,7 @@ class Coder:
         self.step_backward()
         # Emit member name with a trailing underscore, because some have been seen to actually conflict with C++
         # reserved words!
-        self.emit_line('{} {}_;'.format('}', register['name'].lower()))
+        self.emit_line('{} {}_;\n'.format('}', register['name'].lower()))
 
     def emit_dict(self, dictionary, key_is_valid=lambda key: True):
         valid_keys = (key for key in dictionary if key_is_valid(key))
@@ -113,5 +141,5 @@ def strip(string):
     return ' '.join(string.split())
 
 
-def list_if_item(element_or_list):
-    return element_or_list if isinstance(element_or_list, list) else [element_or_list]
+def list_if_item(item_or_list):
+    return item_or_list if isinstance(item_or_list, list) else [item_or_list]
