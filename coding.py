@@ -2,7 +2,8 @@ from collections import defaultdict
 
 
 class Coder:
-    def __init__(self):
+    def __init__(self, namespace):
+        self.namespace = namespace
         self.level = 0
         self.sub_level = 0
         self.peripherals = {}
@@ -30,7 +31,7 @@ class Coder:
         self.emit_line(' *')
         self.emit_dict(mcu, lambda key: key != 'description' and key != 'name' and key != 'peripherals')
         self.emit_line(' */')
-        self.emit_line('namespace mcu_support {')
+        self.emit_line('namespace {} {}'.format(self.namespace, '{'))
         for peripheral in mcu['peripherals']['peripheral']:
             self.emit_incomplete_peripheral(peripheral)
         self.emit_line()
