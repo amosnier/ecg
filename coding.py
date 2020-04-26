@@ -21,7 +21,7 @@ class Coder:
         assert self.sub_level > 0
         self.sub_level -= 1
 
-    def emit_line(self, string):
+    def emit_line(self, string=''):
         print('{}{}'.format(self.level * '\t', string))
 
     def emit_mcu(self, mcu):
@@ -49,10 +49,12 @@ class Coder:
         self.emit_line(' *')
         self.emit_dict(peripheral, lambda key: key != 'description' and key != 'name' and key != 'registers')
         self.emit_line(' */')
-        self.emit_line('struct {} {}'.format(peripheral['name'], '{'))
+        peripheral_name = peripheral['name']
+        self.emit_line('struct {} {}'.format(peripheral_name, '{'))
         self.step_forward()
         offset = 0
         padding_index = 0
+        static_asserts = []
         while offset < peripheral_size:
             num_unused_bytes = 0
             while offset < peripheral_size and offset not in registers_by_offset:
@@ -63,31 +65,36 @@ class Coder:
                 padding_index += 1
             if offset in registers_by_offset:
                 registers_at_offset = registers_by_offset[offset]
+                emitted_size = 0
+                member_name = ''
                 if len(registers_at_offset) == 1:
-                    self.emit_register(registers_at_offset[0])
+                    member_name, emitted_size = self.emit_register(registers_at_offset[0])
                 else:
                     name = '{}_variants'.format(registers_at_offset[0]['name'])
                     self.emit_line('union {} {}'.format(name, '{'))
                     self.step_forward()
                     for register in registers_at_offset:
-                        self.emit_register(register)
+                        emitted_size = max(self.emit_register(register)[1], emitted_size)
                     self.step_backward()
-                    self.emit_line('{} {}_;\n'.format('}', name.lower()))
-                offset += int(registers_at_offset[0]['size'], 0) / 8
+                    member_name = '{}_'.format(name.lower())
+                    self.emit_line('{} {};\n'.format('}', member_name))
+                static_assert = 'static_assert(offsetof({}, {}) == 0x{:02x}, "padding error");'
+                static_asserts.append(static_assert.format(peripheral_name, member_name, offset))
+                offset += emitted_size
         self.step_backward()
         self.emit_line('};\n')
+        for static_assert in static_asserts:
+            self.emit_line(static_assert)
+        self.emit_line()
 
     def emit_register(self, register):
-        # Apparently, the SVD file sometimes contains registers without a single field! It looks like these do not
-        # really exist! Maybe the vendor is planning for the future...
-        if 'fields' not in register:
-            return
         # Note: do not assume hex. The source files are inconsistent (32 means 32, not 50!)
         register_num_bits = int(register['size'], 0)
         fields_by_bit_offset = {}
         # If there is just one field, ensure that it still is presented as a list
-        for field in list_if_item(register['fields']['field']):
-            fields_by_bit_offset[int(field['bitOffset'], 0)] = field
+        if 'fields' in register:
+            for field in list_if_item(register['fields']['field']):
+                fields_by_bit_offset[int(field['bitOffset'], 0)] = field
         self.emit_line('/**')
         self.emit_line(' * @brief {}'.format(strip(register['description'])))
         self.emit_line(' *')
@@ -115,7 +122,9 @@ class Coder:
         self.step_backward()
         # Emit member name with a trailing underscore, because some have been seen to actually conflict with C++
         # reserved words!
-        self.emit_line('{} {}_;\n'.format('}', register['name'].lower()))
+        name = '{}_'.format(register['name'].lower())
+        self.emit_line('{} {};\n'.format('}', name))
+        return name, register_num_bits // 8
 
     def emit_dict(self, dictionary, key_is_valid=lambda key: True):
         valid_keys = (key for key in dictionary if key_is_valid(key))
