@@ -28,15 +28,13 @@ class Coder:
         self.emit_dict(mcu, lambda key: key != 'description' and key != 'name' and key != 'peripherals')
         self.emit_line(' */')
         self.emit_line('namespace mcu {')
-        # Index all peripherals on name to allow finding source of derived peripherals
         for peripheral in mcu['peripherals']['peripheral']:
-            self.peripherals[peripheral['name']] = peripheral
-        # Sort peripherals by base address
-        for peripheral in sorted(mcu['peripherals']['peripheral'], key=lambda p: int(p['baseAddress'], 0)):
             self.emit_peripheral(peripheral)
         self.emit_line('}')
 
     def emit_peripheral(self, peripheral):
+        if '@derivedFrom' not in peripheral:
+            self.peripherals[peripheral['name']] = peripheral
         detailed_info = peripheral if '@derivedFrom' not in peripheral else self.peripherals[peripheral['@derivedFrom']]
         self.emit_line('/**')
         self.emit_line(' * @brief {}'.format(strip(detailed_info['description'])))
@@ -49,7 +47,7 @@ class Coder:
         for register in list_if_item(detailed_info['registers']['register']):
             self.emit_register(register)
         self.step_backward()
-        self.emit_line('{} {};'.format('}', peripheral['name'].lower()))
+        self.emit_line('};\n')
 
     def emit_register(self, register):
         # Apparently, the SVD file sometimes contains registers without a single field! It looks like these do not
