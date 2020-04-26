@@ -30,10 +30,37 @@ class Coder:
         self.emit_line(' *')
         self.emit_dict(mcu, lambda key: key != 'description' and key != 'name' and key != 'peripherals')
         self.emit_line(' */')
-        self.emit_line('namespace mcu {')
+        self.emit_line('namespace mcu_support {')
+        for peripheral in mcu['peripherals']['peripheral']:
+            self.emit_incomplete_peripheral(peripheral)
+        self.emit_line()
+        self.emit_line('struct Mcu{')
+        self.step_forward()
+        for peripheral in mcu['peripherals']['peripheral']:
+            self.emit_peripheral_member(peripheral)
+        self.step_backward()
+        self.emit_line('};\n')
+        self.emit_line('inline const Mcu mcu{')
+        self.step_forward()
+        for peripheral in mcu['peripherals']['peripheral']:
+            self.emit_peripheral_member_init(peripheral)
+        self.step_backward()
+        self.emit_line('};\n')
         for peripheral in mcu['peripherals']['peripheral']:
             self.emit_peripheral(peripheral)
         self.emit_line('}')
+
+    def emit_peripheral_member_init(self, peripheral):
+        name = peripheral['name']
+        line = '.{} = reinterpret_cast<volatile {}*>({}),'
+        self.emit_line(line.format(name.lower(), name, peripheral['baseAddress']))
+
+    def emit_peripheral_member(self, peripheral):
+        name = peripheral['name']
+        self.emit_line('volatile {}* const {};'.format(name, name.lower()))
+
+    def emit_incomplete_peripheral(self, peripheral):
+        self.emit_line('struct {};'.format(peripheral['name']))
 
     def emit_peripheral(self, peripheral):
         if '@derivedFrom' not in peripheral:
