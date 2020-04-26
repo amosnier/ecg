@@ -53,12 +53,12 @@ class Coder:
 
     def emit_peripheral_member_init(self, peripheral):
         name = peripheral['name']
-        line = '.{} = reinterpret_cast<volatile {}*>({}),'
+        line = '.{} = *reinterpret_cast<volatile {}*>({}),'
         self.emit_line(line.format(name.lower(), name, peripheral['baseAddress']))
 
     def emit_peripheral_member(self, peripheral):
         name = peripheral['name']
-        self.emit_line('volatile {}* const {};'.format(name, name.lower()))
+        self.emit_line('volatile {}& {};'.format(name, name.lower()))
 
     def emit_incomplete_peripheral(self, peripheral):
         self.emit_line('struct {};'.format(peripheral['name']))
