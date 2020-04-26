@@ -76,11 +76,13 @@ class Coder:
                 num_unused_bits += 1
                 bit_index += 1
             if num_unused_bits != 0:
-                self.emit_line('int : {};'.format(num_unused_bits))
+                self.emit_line('unsigned : {};'.format(num_unused_bits))
             if bit_index in bits:
                 bit_info = bits[bit_index]
                 width = int(bit_info['bitWidth'], 0)
-                self.emit_line('int {}: {}; /**< {} */'.format(bit_info['name'], width, strip(bit_info['description'])))
+                field_type = "bool" if width == 1 else "unsigned"
+                self.emit_line('{} {}: {}; /**< {} */'.format(field_type, bit_info['name'], width,
+                                                              strip(bit_info['description'])))
                 bit_index += width
         self.step_backward()
         # Emit member name with a trailing underscore, because some have been seen to actually conflict with C++
