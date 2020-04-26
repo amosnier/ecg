@@ -11,14 +11,14 @@ class Coder:
         self.level += 1
 
     def step_backward(self):
-        assert(self.level > 0)
+        assert self.level > 0
         self.level -= 1
 
     def sub_step_forward(self):
         self.sub_level += 1
 
     def sub_step_backward(self):
-        assert(self.sub_level > 0)
+        assert self.sub_level > 0
         self.sub_level -= 1
 
     def emit_line(self, string):
@@ -93,7 +93,8 @@ class Coder:
         self.emit_line(' *')
         self.emit_dict(register, lambda key: key != 'description' and key != 'name' and key != 'fields')
         self.emit_line(' */')
-        self.emit_line('struct {} {}'.format(register['name'], '{'))
+        const = 'const ' if 'access' in register and register['access'] == 'read-only' else ''
+        self.emit_line('{}struct {} {}'.format(const, register['name'], '{'))
         self.step_forward()
         bit_index = 0
         while bit_index < register_num_bits:
@@ -106,9 +107,10 @@ class Coder:
             if bit_index in fields_by_bit_offset:
                 bit_info = fields_by_bit_offset[bit_index]
                 width = int(bit_info['bitWidth'], 0)
+                const = 'const ' if 'access' in bit_info and bit_info['access'] == 'read-only' else ''
                 field_type = "bool" if width == 1 else "unsigned"
-                self.emit_line('{} {}: {}; /**< {} */'.format(field_type, bit_info['name'], width,
-                                                              strip(bit_info['description'])))
+                self.emit_line('{}{} {}: {}; /**< {} */'.format(const, field_type, bit_info['name'], width,
+                                                                strip(bit_info['description'])))
                 bit_index += width
         self.step_backward()
         # Emit member name with a trailing underscore, because some have been seen to actually conflict with C++
