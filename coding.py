@@ -27,16 +27,14 @@ class Coder:
         self.emit_line(' *')
         self.emit_dict(mcu, lambda key: key != 'description' and key != 'name' and key != 'peripherals')
         self.emit_line(' */')
-        self.emit_line('struct {} {}'.format(mcu['name'], '{'))
-        self.step_forward()
+        self.emit_line('namespace mcu {')
         # Index all peripherals on name to allow finding source of derived peripherals
         for peripheral in mcu['peripherals']['peripheral']:
             self.peripherals[peripheral['name']] = peripheral
         # Sort peripherals by base address
         for peripheral in sorted(mcu['peripherals']['peripheral'], key=lambda p: int(p['baseAddress'], 0)):
             self.emit_peripheral(peripheral)
-        self.step_backward()
-        self.emit_line('{} {};'.format('}', mcu['name'].lower()))
+        self.emit_line('}')
 
     def emit_peripheral(self, peripheral):
         detailed_info = peripheral if '@derivedFrom' not in peripheral else self.peripherals[peripheral['@derivedFrom']]
@@ -85,6 +83,8 @@ class Coder:
                 self.emit_line('int {}: {}; /**< {} */'.format(bit_info['name'], width, strip(bit_info['description'])))
                 bit_index += width
         self.step_backward()
+        # Emit member name with a trailing underscore, because some have been seen to actually conflict with C++
+        # reserved words!
         self.emit_line('{} {}_;'.format('}', register['name'].lower()))
 
     def emit_dict(self, dictionary, key_is_valid=lambda key: True):
