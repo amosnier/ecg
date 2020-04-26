@@ -33,7 +33,7 @@ class Coder:
         for peripheral in mcu['peripherals']['peripheral']:
             self.peripherals[peripheral['name']] = peripheral
         # Sort peripherals by base address
-        for peripheral in sorted(mcu['peripherals']['peripheral'], key=lambda p: int(p['baseAddress'], 16)):
+        for peripheral in sorted(mcu['peripherals']['peripheral'], key=lambda p: int(p['baseAddress'], 0)):
             self.emit_peripheral(peripheral)
         self.step_backward()
         self.emit_line('{} {};'.format('}', mcu['name'].lower()))
@@ -48,7 +48,7 @@ class Coder:
         self.emit_line('struct {} {}'.format(peripheral['name'], '{'))
         self.step_forward()
         # If there is just one register, ensure that it still is presented as a list
-        for register in list_if_element(detailed_info['registers']['register']):
+        for register in list_if_item(detailed_info['registers']['register']):
             self.emit_register(register)
         self.step_backward()
         self.emit_line('{} {};'.format('}', peripheral['name'].lower()))
@@ -58,10 +58,11 @@ class Coder:
         # really exist! Maybe the vendor is planning for the future...
         if 'fields' not in register:
             return
-        num_bits = int(register['size'], 16)
+        # Note: do not assume hex. The source files are inconsistent (32 means 32, not 50!)
+        register_num_bits = int(register['size'], 0)
         bits = {}
         # If there is just one field, ensure that it still is presented as a list
-        for field in list_if_element(register['fields']['field']):
+        for field in list_if_item(register['fields']['field']):
             bits[int(field['bitOffset'])] = field
         self.emit_line('/**')
         self.emit_line(' * @brief {}'.format(strip(register['description'])))
@@ -71,20 +72,20 @@ class Coder:
         self.emit_line('struct {} {}'.format(register['name'], '{'))
         self.step_forward()
         bit_index = 0
-        while bit_index < num_bits:
-            size = 0
-            while bit_index < num_bits and bit_index not in bits:
-                size += 1
+        while bit_index < register_num_bits:
+            num_unused_bits = 0
+            while bit_index < register_num_bits and bit_index not in bits:
+                num_unused_bits += 1
                 bit_index += 1
-            if size != 0:
-                self.emit_line('int : {};'.format(size))
+            if num_unused_bits != 0:
+                self.emit_line('int : {};'.format(num_unused_bits))
             if bit_index in bits:
                 bit_info = bits[bit_index]
-                width = int(bit_info['bitWidth'])
+                width = int(bit_info['bitWidth'], 0)
                 self.emit_line('int {}: {}; /**< {} */'.format(bit_info['name'], width, strip(bit_info['description'])))
                 bit_index += width
         self.step_backward()
-        self.emit_line('{} {};'.format('}', register['name'].lower()))
+        self.emit_line('{} {}_;'.format('}', register['name'].lower()))
 
     def emit_dict(self, dictionary, key_is_valid=lambda key: True):
         valid_keys = (key for key in dictionary if key_is_valid(key))
@@ -112,5 +113,5 @@ def strip(string):
     return ' '.join(string.split())
 
 
-def list_if_element(element_or_list):
+def list_if_item(element_or_list):
     return element_or_list if isinstance(element_or_list, list) else [element_or_list]
