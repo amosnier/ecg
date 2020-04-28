@@ -33,9 +33,11 @@ class Coder:
         self.emit_line(' */')
         self.emit_line('namespace {} {}'.format(self.namespace, '{'))
         for peripheral in mcu['peripherals']['peripheral']:
-            self.emit_incomplete_peripheral(peripheral)
+            self.index_and_emit_incomplete_peripheral(peripheral)
         self.emit_line()
-        self.emit_line('struct Mcu{')
+        # Sort peripherals by name
+        mcu['peripherals']['peripheral'] = sorted(mcu['peripherals']['peripheral'], key=lambda p: p['name'])
+        self.emit_line('struct Mcu {')
         self.step_forward()
         for peripheral in mcu['peripherals']['peripheral']:
             self.emit_peripheral_member(peripheral)
@@ -60,12 +62,18 @@ class Coder:
         name = peripheral['name']
         self.emit_line('volatile {}& {};'.format(name, name.lower()))
 
-    def emit_incomplete_peripheral(self, peripheral):
-        self.emit_line('struct {};'.format(peripheral['name']))
+    def index_and_emit_incomplete_peripheral(self, peripheral):
+        # Index peripherals by name in order to support peripherals that are derived from another one, which could lie
+        # further in the alphabet.
+        self.peripherals[peripheral['name']] = peripheral
+
+        if '@derivedFrom' in peripheral:
+            self.emit_line('using {} = {};'.format(peripheral['name'],
+                                                   self.peripherals[peripheral['@derivedFrom']]['name']))
+        else:
+            self.emit_line('struct {};'.format(peripheral['name']))
 
     def emit_peripheral(self, peripheral):
-        if '@derivedFrom' not in peripheral:
-            self.peripherals[peripheral['name']] = peripheral
         detailed_info = peripheral if '@derivedFrom' not in peripheral else self.peripherals[peripheral['@derivedFrom']]
         peripheral_size = int(detailed_info['addressBlock']['size'], 0)
         registers_by_offset = defaultdict(list)
@@ -78,6 +86,9 @@ class Coder:
         self.emit_dict(peripheral, lambda key: key != 'description' and key != 'name' and key != 'registers')
         self.emit_line(' */')
         peripheral_name = peripheral['name']
+        if '@derivedFrom' in peripheral:
+            self.emit_line()
+            return
         self.emit_line('struct {} {}'.format(peripheral_name, '{'))
         self.step_forward()
         offset = 0
