@@ -23,7 +23,8 @@ def main():
     print(' * Namespace: {}'.format(namespace))
     print(' */\n')
     print('#pragma once\n')
-    print('#include <cstddef>\n')
+    print('#include <cstddef>')
+    print('#include <cstdint>\n')
     with open(svd_file) as file:
         doc = xmltodict.parse(file.read())
     coder = coding.Coder(namespace)
@@ -35,3 +36,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
