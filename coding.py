@@ -56,8 +56,18 @@ class Coder:
         self.emit_line('inline void check_mcu_map_at_runtime()')
         self.emit_line('{')
         self.step_forward()
-        for peripheral in mcu['peripherals']['peripheral']:
-            self.emit_peripheral_check(peripheral)
+        # The following lines would emit checking code for all registers
+        #
+        # for peripheral in mcu['peripherals']['peripheral']:
+        #    self.emit_peripheral_check(peripheral)
+        #
+        # However, some values have been seen not to be the expected ones on target. One reason, which we could come
+        # around with the help of masking, is that some reserved bits (not mapped to named fields) have non-zero reset
+        # values. But some peripheral register reset values are just not the specified ones. A possible explanation is
+        # that these peripherals might need clocking for their register values to make sense at all, i.e. we would
+        # only be able to check their values after some more initialization. For now, we limit the checking to a core
+        # ARM peripheral, the System Control Block (SCB).
+        self.emit_peripheral_check(self.peripherals_by_name['SCB'])
         self.step_backward()
         self.emit_line('}')
         self.emit_line('#endif // {}_RUNTIME_CHECK'.format(self.namespace.upper()))
