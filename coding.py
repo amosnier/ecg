@@ -7,7 +7,6 @@ class Coder:
         self.level = 0
         self.sub_level = 0
         self.peripherals_by_name = {}
-        self.unions_by_register = {}
 
     def step_forward(self):
         self.level += 1
@@ -52,26 +51,6 @@ class Coder:
         self.emit_line('};\n')
         for peripheral in mcu['peripherals']['peripheral']:
             self.emit_peripheral(peripheral)
-        self.emit_line('#ifdef {}_RUNTIME_CHECK'.format(self.namespace.upper()))
-        self.emit_line('inline void check_mcu_map_at_runtime()')
-        self.emit_line('{')
-        self.step_forward()
-        # The following lines would emit checking code for all registers
-        #
-        # for peripheral in mcu['peripherals']['peripheral']:
-        #    self.emit_peripheral_check(peripheral)
-        #
-        # However, some values have been seen not to be the expected ones on target. One reason, which we could come
-        # around with the help of masking, is that some reserved bits (not mapped to named fields) have non-zero reset
-        # values. But some peripheral register reset values are just not the specified ones. A possible explanation is
-        # that these peripherals might need clocking for their register values to make sense at all, i.e. we would
-        # only be able to check their values after some more initialization. For now, we limit the checking to a core
-        # ARM peripheral, the System Control Block (SCB).
-        self.emit_peripheral_check(self.peripherals_by_name['SCB'])
-        self.step_backward()
-        self.emit_line('}')
-        self.emit_line('#endif // {}_RUNTIME_CHECK'.format(self.namespace.upper()))
-        self.emit_line()
         self.emit_line('}')
 
     def emit_peripheral_member_init(self, peripheral):
@@ -134,9 +113,6 @@ class Coder:
                     self.emit_line('union {} {}'.format(name, '{'))
                     self.step_forward()
                     for register in registers_at_offset:
-                        # Remember union name for that register, for future reference. Note: the peripheral name is
-                        # necessary in the key to ensure unambiguous register identification
-                        self.unions_by_register[(peripheral_name, register['name'])] = name
                         emitted_size = max(self.emit_register(register)[1], emitted_size)
                     self.step_backward()
                     member_name = '{}_'.format(name.lower())
@@ -149,12 +125,6 @@ class Coder:
         for static_assert in static_asserts:
             self.emit_line(static_assert)
         self.emit_line()
-
-    def emit_peripheral_check(self, peripheral):
-        if '@derivedFrom' in peripheral:
-            return
-        for register in list_if_item(peripheral['registers']['register']):
-            self.emit_register_check(register, peripheral['name'])
 
     def emit_register(self, register):
         # Note: do not assume hex. The source files are inconsistent (32 means 32, not 50!)
@@ -194,49 +164,6 @@ class Coder:
         name = '{}_'.format(register['name'].lower())
         self.emit_line('{} {};\n'.format('}', name))
         return name, register_num_bits // 8
-
-    def emit_register_check(self, register, peripheral_name):
-        register_num_bits = int(register['size'], 0)
-        # The procedure below will use a standard type to represent the register, so we need to check that this will
-        # work, but it should not be a practical limitation.
-        assert register_num_bits == 8 or register_num_bits == 16 or register_num_bits == 32 or register_num_bits == 64
-        if 'fields' not in register:
-            return  # sometimes, there are no fields, and therefore nothing to check
-        try:
-            reset_value = int(register['resetValue'], 0)
-        except ValueError:
-            # SVD files sometimes specify the reset value in binary format (instead of hex, typically), but they do not
-            # use any standard way to flag that (like '0b'). E.g., '00000010' could mean two. We choose to ignore
-            # anything Python cannot interpret without help, since any ad-hoc heuristic would probably be somewhat
-            # unreliable.
-            return
-        if is_bin_symmetrical(reset_value, register_num_bits):
-            # Getting it right on a symmetrical number does not mean much, so we do not select symmetrical number for
-            # the check. Note: this includes all zero-values, which is good.
-            return
-        self.emit_line('if (')
-        self.step_forward()
-        self.emit_line('(')
-        self.step_forward()
-        register_name = register['name']
-        register_field_name = '{}_'.format(register_name.lower())
-        try:
-            union_part = '.{}_'.format(self.unions_by_register[(peripheral_name, register_name)].lower())
-        except KeyError:
-            union_part = ''
-        num_fields = len(list_if_item(register['fields']['field']))
-        for i, field in enumerate(list_if_item(register['fields']['field'])):
-            string = '(static_cast<uint{}_t>(mcu.{}{}.{}.{}) << {}u){}'
-            terminator = ' |' if i < (num_fields - 1) else ''
-            self.emit_line(string.format(register_num_bits, peripheral_name.lower(), union_part, register_field_name,
-                                         field['name'], int(field['bitOffset'], 0), terminator))
-        self.step_backward()
-        self.emit_line(') != {:#x}u)'.format(reset_value))
-        self.emit_line('for (;;)')
-        self.step_forward()
-        self.emit_line('; // halt')
-        self.step_backward()
-        self.step_backward()
 
     def emit_dict(self, dictionary, key_is_valid=lambda key: True):
         valid_keys = (key for key in dictionary if key_is_valid(key))
