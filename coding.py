@@ -51,6 +51,11 @@ class Coder:
         self.emit_line('};\n')
         for peripheral in mcu['peripherals']['peripheral']:
             self.emit_peripheral(peripheral)
+        self.emit_line('#ifdef {}_RUNTIME_CHECK'.format(self.namespace.upper()))
+        with open('check_bit_field_mapping.h') as file:
+            print(file.read(), end="")
+        self.emit_line('#endif // {}_RUNTIME_CHECK'.format(self.namespace.upper()))
+        self.emit_line()
         self.emit_line('}')
 
     def emit_peripheral_member_init(self, peripheral):
@@ -193,20 +198,3 @@ def strip(string):
 
 def list_if_item(item_or_list):
     return item_or_list if isinstance(item_or_list, list) else [item_or_list]
-
-
-def revert_number(number, num_bits):
-    reverted_number = 0
-    for bit in range(num_bits):
-        reverted_number |= (number & 1) << (num_bits - bit - 1)
-        number >>= 1
-    return reverted_number
-
-
-def is_bin_symmetrical(number, num_bits):
-    assert num_bits % 2 == 0
-    half_num_bits = num_bits // 2
-    high_half = number >> half_num_bits
-    half_mask = (1 << half_num_bits) - 1
-    low_half = number & half_mask
-    return high_half == revert_number(low_half, half_num_bits)
