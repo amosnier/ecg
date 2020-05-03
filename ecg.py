@@ -4,16 +4,8 @@ import sys
 import coding
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Generate C++ header file from ARM SVD file.')
-    parser.add_argument('svd_file', help='SVD file')
-    parser.add_argument('-o', '--output', help='C++ header file name')
-    parser.add_argument('-n', '--namespace', help='C++ namespace', default='mcu_support')
-    args = parser.parse_args()
-    svd_file = args.svd_file
-    h_file = args.output
+def generate_code(svd_file, h_file, namespace):
     stdout = sys.stdout
-    namespace = args.namespace
     if h_file:
         sys.stdout = open(h_file, 'w')
     print('/**')
@@ -34,6 +26,17 @@ def main():
         sys.stdout = stdout
 
 
+def main():
+    parser = argparse.ArgumentParser(description='Generate C++ header file from ARM SVD file.')
+    parser.add_argument('svd_file', help='SVD file')
+    parser.add_argument('-o', '--output', help='C++ header file name')
+    parser.add_argument('-n', '--namespace', help='C++ namespace', default='mcu_support')
+    args = parser.parse_args()
+    svd_file = args.svd_file
+    h_file = args.output
+    namespace = args.namespace
+    generate_code(svd_file, h_file, namespace)
+
+
 if __name__ == '__main__':
     main()
-
