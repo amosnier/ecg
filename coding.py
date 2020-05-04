@@ -171,6 +171,11 @@ class Coder:
         return name, register_num_bits // 8
 
     def emit_dict(self, dictionary, key_is_valid=lambda key: True):
+        # In general, what we find here is a dictionary. But exceptionally, it could be a string. In that case,
+        # we just emit it.
+        if isinstance(dictionary, str):
+            self.emit_line(' * {}{}'.format(self.sub_level * '\t', dictionary))
+            return
         valid_keys = (key for key in dictionary if key_is_valid(key))
         for key in valid_keys:
             value = dictionary[key]
