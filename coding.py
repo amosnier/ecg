@@ -31,6 +31,15 @@ class Coder:
         self.emit_line(' *')
         self.emit_dict(mcu, lambda key: key != 'description' and key != 'name' and key != 'peripherals')
         self.emit_line(' */')
+        # Try to assert endianness. The generated code assumes little-endian. While all Cortex-M MCUs seem to be
+        # little-endian in practice, and while ARM's own core header files for Cortex-M seem to assume that too,
+        # this assumption is a little dangerous. The generated runtime check code asserts this assumption,
+        # among others, and it is highly recommended to run it at least once per combination MCU/toolchain that you
+        # are using!
+        try:
+            assert mcu['cpu']['endian'] == 'little'
+        except KeyError:
+            pass  # Key not always available, unfortunately
         self.emit_line('namespace {} {}'.format(self.namespace, '{'))
         for peripheral in mcu['peripherals']['peripheral']:
             self.index_and_emit_incomplete_peripheral(peripheral)
