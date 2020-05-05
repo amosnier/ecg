@@ -134,6 +134,8 @@ class Coder:
     def emit_register(self, register):
         # Note: do not assume hex. The source files are inconsistent (32 means 32, not 50!)
         register_num_bits = int(register['size'], 0)
+        assert register_num_bits == 8 or register_num_bits == 16 or register_num_bits == 32 or register_num_bits == 64
+        field_type = 'uint{}_t'.format(register_num_bits)
         fields_by_bit_offset = {}
         # If there is just one field, ensure that it still is presented as a list
         if 'fields' in register:
@@ -154,12 +156,11 @@ class Coder:
                 num_unused_bits += 1
                 bit_index += 1
             if num_unused_bits != 0:
-                self.emit_line('unsigned : {};'.format(num_unused_bits))
+                self.emit_line('{} : {};'.format(field_type, num_unused_bits))
             if bit_index in fields_by_bit_offset:
                 bit_info = fields_by_bit_offset[bit_index]
                 width = int(bit_info['bitWidth'], 0)
                 const = 'const ' if 'access' in bit_info and bit_info['access'] == 'read-only' else ''
-                field_type = "bool" if width == 1 else "unsigned"
                 self.emit_line('{}{} {}: {}; /**< {} */'.format(const, field_type, bit_info['name'], width,
                                                                 strip(bit_info['description'])))
                 bit_index += width
