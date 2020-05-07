@@ -405,8 +405,14 @@ $4 = (volatile mcu_support::SCB &) @0xe000ed00: {
 }
 ```
 
-One of the fields tell us that this is an ARM Cortex-M7. Can you find which one?
+One of the fields tells us that this is an ARM Cortex-M7. Can you find which one?
 
 Use your favorite `gdb`-IDE integration for a seamless read/write access to all your MCU peripheral registers.
 
 Enjoy!
+# License
+`ecg` is licensed under the [GNU General Public License v3.0](LICENSE), but the generated files are not! Since the
+generated files by design reproduce large parts of the source SVD files, you should check the license agreement of your
+source SVD files. When it comes to SVD files included in this repository, they are distributed without a license by
+the vendors and seem to be reproduced elsewhere without particular precaution. Please contact me if you think I am
+committing any breach of a license agreement.
