@@ -4,6 +4,7 @@ import sys
 
 
 def main():
+    num_files = 0
     for subdir, dirs, files in os.walk('svd'):
         for in_file in files:
             if in_file.endswith('.svd'):
@@ -11,10 +12,14 @@ def main():
                 os.makedirs(out_dir, exist_ok=True)
                 full_in_path = os.path.join(subdir, in_file)
                 try:
-                    ecg.generate_code(full_in_path, os.path.join(out_dir, 'mcu.h'), 'mcu_support')
+                    full_out_path = os.path.join(out_dir, 'mcu.h')
+                    ecg.generate_code(full_in_path, full_out_path, 'mcu_support')
+                    print('{} -> {}'. format(full_in_path, full_out_path))
+                    num_files += 1
                 except Exception:
                     sys.stderr.write('--- Caught exception while parsing {} ---\n'.format(full_in_path))
                     raise
+    print('generated {} files'.format(num_files))
 
 
 if __name__ == '__main__':

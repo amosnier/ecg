@@ -13,7 +13,7 @@ $ mkvirtualenv ecg_venv -p /usr/bin/python3 && pip install xmltodict
 ```
 `ecg_venv` is of course just an arbitrary name. Just pick whatever you like.
 
-Also, also a compiler that supports C++17 is required to compile the generated code.
+Also, a compiler that supports C++17 is required to compile the generated code.
 ## Syntax
 The syntax for `ecg` is as illustrated below.
 ```shell
@@ -52,6 +52,18 @@ for performance.
 The SVD files used by the tests can be found under [svd](svd), and the resulting header files are generated under
 a `generated` directory. All the generated files are called `mcu.h`, and each file is stored in its own directory. You
 are of course free to decide on your own structure and naming conventions when you use `ecg`.
+## Limitations
+At the time of writing, [Travis](https://travis-ci.org/github/amosnier/ecg) automatically runs the tests mentioned
+above but they do not go beyond ensuring that the C++ code is generated without errors for all test files. This will
+hopefully be extended in the following way in the future:
+- Checking that every generated file can be cross-compiled without error. Since the compile-time assertions check the
+generated memory layouts, cross-compilation is a requirement for these tests.
+- Ideally, we would even like to run the runtime checking functions on an emulated target platform. QEMU could be
+used for that.
+
+Also, at the time of writing, only one of the generated files has been tested in a debugger on target. If you use
+`ecg`, please do not blindly rely on the generated code, check it!
+
 ## Frequently asked questions
 ### C++? Isn't C a better language for embedded development?
 My customers and I mostly use `gcc` for embedded development, which gives access to both C and C++. I believe other
@@ -292,6 +304,8 @@ inline const Mcu mcu{
 This is C++, so we use references instead of pointers for the peripheral members. Also, the `mcu` variable is inline,
 which is a new feature in C++17, and allows the header file to be included in multiple compilation units without
 creating conflicting definitions of the variable (only one copy is created for the whole program).
+
+For convenience, the peripherals are sorted in alphabetic order.
 
 In a debugger session, the `mcu` variable can be used in the following way:
 
