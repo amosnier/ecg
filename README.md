@@ -64,6 +64,11 @@ used for that.
 Also, at the time of writing, only one of the generated files has been tested in a debugger on target. If you use
 `ecg`, please do not blindly rely on the generated code, check it!
 
+Finally, while `ecg` seems to work on quite many STM32 SVD files, it has not been tested on other vendors' SVD files,
+or other processor families. I am not sure how strict the SVD specification and its implementations are. I would not be
+surprised if `ecg` had to be adapted for other vendors or processor families. Please report any issue that you may
+find at [the issue tracker](https://github.com/amosnier/ecg/issues).
+
 ## Frequently asked questions
 ### C++? Isn't C a better language for embedded development?
 My customers and I mostly use `gcc` for embedded development, which gives access to both C and C++. I believe other
