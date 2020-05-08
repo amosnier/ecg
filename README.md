@@ -430,7 +430,7 @@ Use your favorite `gdb`-IDE integration for a seamless read/write access to all 
 Enjoy!
 # License
 `ecg` is licensed under the [GNU General Public License v3.0](LICENSE), but this does not apply to the generated files.
-No particular license apply to the generated files from `ecg`'s perspective, but since the generated files by design
+No particular license applies to the generated files from `ecg`'s perspective, but since the generated files by design
 reproduce large parts of the source SVD files, you should check the license agreement of your source SVD files. When
 it comes to the SVD files included in this repository, they are distributed without a license by their original provider
 and seem to be reproduced elsewhere without particular precaution. Please contact me if you think I am committing any
