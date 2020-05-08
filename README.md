@@ -12,6 +12,8 @@ If you are lucky enough to run `virtualenv` and `virtualenvwrapper`, getting thi
 $ mkvirtualenv ecg_venv -p /usr/bin/python3 && pip install xmltodict
 ```
 `ecg_venv` is of course just an arbitrary name. Just pick whatever you like.
+
+Also, also a compiler that supports C++17 is required to compile the generated code.
 ## Syntax
 The syntax for `ecg` is as illustrated below.
 ```shell
@@ -287,7 +289,9 @@ inline const Mcu mcu{
 };
 ```
 
-This is C++, so we use references instead of pointers for the peripheral members.
+This is C++, so we use references instead of pointers for the peripheral members. Also, the `mcu` variable is inline,
+which is a new feature in C++17, and allows the header file to be included in multiple compilation units without
+creating conflicting definitions of the variable (only one copy is created for the whole program).
 
 In a debugger session, the `mcu` variable can be used in the following way:
 
