@@ -53,7 +53,8 @@ class Coder:
             print('{} specified as little-endian'.format(mcu['name']))
         except KeyError:   # endianness information not always available, unfortunately
             print('No endianness information found for {}, assuming little-endian'.format(mcu['name']))
-        print('Please double-check endianness assumption by running provided runtime checking function on target!\n')
+        print('Please double-check endianness assumption by running provided runtime checking function on target!')
+        print('Generating code for {} peripherals...\n'.format(len(mcu['peripherals']['peripheral'])))
         self.emit_line('namespace {} {}'.format(self.namespace, '{'))
         for peripheral in mcu['peripherals']['peripheral']:
             self.index_and_emit_incomplete_peripheral(peripheral)
