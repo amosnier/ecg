@@ -3,7 +3,8 @@ C++ code generator for embedded systems
 ## Name and purpose
 At the moment, `ecg`'s only ability is to generate C++ header files from
 [CMSIS System View Description file](http://www.keil.com/pack/doc/CMSIS/SVD/html/index.html). It may or may not grow
-and at some point better reflect the possible interpretation of its name as a general acronym for "C++ code generator for embedded systems".
+and at some point better reflect the possible interpretation of its name as a general acronym for "C++ code generator
+for embedded systems".
 ## Prerequisites
 Python 3 is required to run `ecg`, as well as the package `xmltodict`.
 If you are lucky enough to run `virtualenv` and `virtualenvwrapper`, getting this could be as simple as:
@@ -439,3 +440,9 @@ reproduce large parts of the source SVD files, you should check the license agre
 it comes to the SVD files included in this repository, they are distributed without a license by their original provider
 and seem to be reproduced elsewhere without particular precaution. Please contact me if you think I am committing any
 breach of a license agreement.
+
+# Branch `dev` in this repository
+I use the branch `dev` in this repository as my private backyard. Please do not make any assumption about that branch.
+In particular, it may get rebased at any time.
+
+On the other hand, I intend to keep the `master` branch in a working state, and I will not rebase it.
