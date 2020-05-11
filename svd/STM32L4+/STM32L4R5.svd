@@ -15556,9 +15556,9 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
           </fields>
         </register>
         <register>
-          <name>CH7WDATR</name>
-          <displayName>CH7WDATR</displayName>
-          <description>CH7WDATR</description>
+          <name>CH7DATINR</name>
+          <displayName>CH7DATINR</displayName>
+          <description>CH7DATINR</description>
           <addressOffset>0xF0</addressOffset>
           <size>0x20</size>
           <access>read-write</access>

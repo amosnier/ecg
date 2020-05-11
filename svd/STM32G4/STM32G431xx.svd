@@ -24645,7 +24645,7 @@
                <name>COMP_C4CSR</name>
                <displayName>COMP_C4CSR</displayName>
                <description>Comparator control/status           register</description>
-               <addressOffset>0x12</addressOffset>
+               <addressOffset>0x0C</addressOffset>
                <size>0x20</size>
                <resetValue>0x00000000</resetValue>
                <fields>

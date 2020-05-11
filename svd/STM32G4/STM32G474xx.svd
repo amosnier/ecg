@@ -25760,7 +25760,7 @@
                <name>COMP_C4CSR</name>
                <displayName>COMP_C4CSR</displayName>
                <description>Comparator control/status           register</description>
-               <addressOffset>0x12</addressOffset>
+               <addressOffset>0x0C</addressOffset>
                <size>0x20</size>
                <resetValue>0x00000000</resetValue>
                <fields>
@@ -25848,7 +25848,7 @@
                <name>COMP_C5CSR</name>
                <displayName>COMP_C5CSR</displayName>
                <description>Comparator control/status           register</description>
-               <addressOffset>0x16</addressOffset>
+               <addressOffset>0x10</addressOffset>
                <size>0x20</size>
                <resetValue>0x00000000</resetValue>
                <fields>
@@ -25936,7 +25936,7 @@
                <name>COMP_C6CSR</name>
                <displayName>COMP_C6CSR</displayName>
                <description>Comparator control/status           register</description>
-               <addressOffset>0x20</addressOffset>
+               <addressOffset>0x14</addressOffset>
                <size>0x20</size>
                <resetValue>0x00000000</resetValue>
                <fields>
@@ -26024,7 +26024,7 @@
                <name>COMP_C7CSR</name>
                <displayName>COMP_C7CSR</displayName>
                <description>Comparator control/status           register</description>
-               <addressOffset>0x24</addressOffset>
+               <addressOffset>0x18</addressOffset>
                <size>0x20</size>
                <resetValue>0x00000000</resetValue>
                <fields>
