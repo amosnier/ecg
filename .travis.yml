@@ -14,4 +14,5 @@ install:
 before_script:
   - arm-none-eabi-gcc --version
 
-script: make
+script:
+  - python test.py -c arm-none-eabi-gcc
