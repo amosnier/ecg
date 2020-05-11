@@ -58,6 +58,30 @@ for performance.
 The SVD files used by the tests can be found under [svd](svd), and the resulting header files are generated under
 a `generated` directory. All the generated files are called `mcu.h`, and each file is stored in its own directory. You
 are of course free to decide on your own structure and naming conventions when you use `ecg`.
+
+The test script can also be ordered to test-compile every generated file:
+```shell
+$ time python test.py -c /home/alain/custom/bin/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
+[...]
+STM32H743x specified as little-endian
+Please double-check endianness assumption by running provided runtime checking function on target!
+Generating code for 128 peripherals...
+
+Running: /home/alain/custom/bin/gcc-arm-none-eabi/bin/arm-none-eabi-gcc -std=c++17 -o build/test.o -c test.cpp -I generated/STM32H7/STM32H743x
+Compilation successful
+
+generated 57 files
+
+real	0m27,762s
+user	0m27,164s
+sys	0m0,568s
+```
+
+The compilation has many `static_assert`-invocations that check the offset of every register in every peripheral. In
+fact, these unit tests where able to automatically detect a number of errors in ... ST's  SVD files! These were
+corrected in commit [4c7f67e761](https://github.com/amosnier/ecg/commit/4c7f67e7616181aec0b9210b735cb6b9b2cc957e),
+and reported to ST.
+
 ## Limitations
 ### ARM Cortex families and endianness
 `ecg` has the ambition to handle any [SVD](https://arm-software.github.io/CMSIS_5/SVD/html/index.html) -file as its
@@ -88,13 +112,12 @@ surprised if `ecg` needed a few adjustments for it to work with other vendors or
 [report any issue that you may find](https://github.com/amosnier/ecg/issues).
 
 ### What is automatically tested and what is not
-At the time of writing, [Travis](https://travis-ci.org/github/amosnier/ecg) automatically runs the tests mentioned
-above but they do not go beyond ensuring that the C++ code is generated without errors for all test files. This will
-hopefully be extended in the following way in the future:
-- Checking that every generated file can be cross-compiled without error. Since the compile-time assertions check the
-generated memory layouts, cross-compilation is a requirement for these tests.
-- Ideally, we would even like to run the runtime checking functions on an emulated target platform. QEMU could be
-used for that.
+[Travis](https://travis-ci.org/github/amosnier/ecg) automatically runs the tests mentioned above for every commit, i.e.
+successful code generation and successful compilation of the generated code, including many
+`static_assert`-invocations that check the offset of every register in every peripheral in the ARM ABI.
+
+Unfortunately, correct endianness can only be tested at runtime, and it is strongly recommended to run the generated
+runtime checking function.
 
 ## Cost for the target system
 If we except the runtime checking function, which would typically not be linked in an application deployed in the
