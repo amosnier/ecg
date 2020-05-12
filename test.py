@@ -21,14 +21,7 @@ def main():
                 full_in_path = os.path.join(subdir, in_file)
                 try:
                     full_out_path = os.path.join(out_dir, 'mcu.h')
-                    ecg.generate_code(full_in_path, full_out_path, 'mcu_support')
-                    if compiler:
-                        compile_string = '{} -std=c++17 -o {} -c test.cpp -I {}'
-                        object_file = os.path.join('build', 'test.o')
-                        command = compile_string.format(compiler, object_file, out_dir)
-                        print('Running: {}'.format(command))
-                        assert not os.system(command)
-                        print('Compilation successful\n')
+                    ecg.generate_code(full_in_path, full_out_path, 'mcu_support', compiler)
                     num_files += 1
                 except Exception:
                     sys.stderr.write('--- Caught exception while parsing {} ---\n'.format(full_in_path))
