@@ -15,7 +15,7 @@ def generate_code(svd_file, h_file, namespace):
 
 def main():
     # noinspection PyTypeChecker
-    parser = argparse.ArgumentParser(description='Generate C++ header file from ARM Cortex SVD file.',
+    parser = argparse.ArgumentParser(description='Generate a C++ header file from an ARM Cortex SVD file.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('svd_file', help='SVD file')
     parser.add_argument('-o', '--output', required=True, help='C++ header file name')

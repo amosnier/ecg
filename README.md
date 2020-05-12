@@ -20,7 +20,7 @@ The syntax for `ecg` is as illustrated below.
 $ python ecg.py --help
 usage: ecg.py [-h] -o OUTPUT [-n NAMESPACE] svd_file
 
-Generate C++ header file from ARM Cortex SVD file.
+Generate a C++ header file from an ARM Cortex SVD file.
 
 positional arguments:
   svd_file              SVD file
