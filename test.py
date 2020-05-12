@@ -2,6 +2,7 @@ import os
 import ecg
 import sys
 import argparse
+import pathlib
 
 
 def main():
@@ -9,6 +10,7 @@ def main():
     parser.add_argument('-c', '--compiler', help='C++ header file name')
     args = parser.parse_args()
     compiler = args.compiler
+    os.chdir(pathlib.Path(__file__).parent.absolute())
     os.makedirs('build', exist_ok=True)
     num_files = 0
     for subdir, dirs, files in os.walk('svd'):
