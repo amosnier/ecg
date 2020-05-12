@@ -18,7 +18,7 @@ Also, a compiler that supports C++17 is required to compile the generated code.
 The syntax for `ecg` is as illustrated below.
 ```shell
 $ python ecg.py --help
-usage: ecg.py [-h] -o OUTPUT [-n NAMESPACE] svd_file
+usage: ecg.py [-h] -o OUTPUT [-n NAMESPACE] [-c COMPILER] svd_file
 
 Generate a C++ header file from an ARM Cortex SVD file.
 
@@ -31,7 +31,17 @@ optional arguments:
                         C++ header file name (default: None)
   -n NAMESPACE, --namespace NAMESPACE
                         C++ namespace (default: mcu_support)
+  -c COMPILER, --compiler COMPILER
+                        C++ header file name (default: None)
 ```
+
+The compiler argument is optional. If provided, the generated header file will immediately be compiled, as a validation
+test. Note: since the header file contains many offset static assertions, only a target compiler makes sense for the
+compilation test. Also, it should be noted that the compiler option should only be used for validation purposes, not
+for producing an object file that would be linked in a target application. For obvious reasons, `ecg` has no way to
+know what compilation flags should apply for a hypothetical target application, and it only uses the flags that are
+necessary for code and offset validation. The source file (which is created on the fly and includes the header file to
+allow compilation) and the object file are stored in a temporary directory provided by the operating system.
 
 A test script is provided:
 ```shell
@@ -61,20 +71,21 @@ are of course free to decide on your own structure and naming conventions when y
 
 The test script can also be ordered to test-compile every generated file:
 ```shell
-$ time python test.py -c /home/alain/custom/bin/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
+$ time python test.py -c /opt/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
 [...]
+svd/STM32H7/STM32H743x.svd		->	generated/STM32H7/STM32H743x/mcu.h
 STM32H743x specified as little-endian
 Please double-check endianness assumption by running provided runtime checking function on target!
 Generating code for 128 peripherals...
 
-Running: /home/alain/custom/bin/gcc-arm-none-eabi/bin/arm-none-eabi-gcc -std=c++17 -o build/test.o -c test.cpp -I generated/STM32H7/STM32H743x
+Running: /opt/gcc-arm-none-eabi/bin/arm-none-eabi-gcc -std=c++17 -o /tmp/test.o -c /tmp/test.cpp -I generated/STM32H7/STM32H743x
 Compilation successful
 
 generated 57 files
 
-real	0m27,762s
-user	0m27,164s
-sys	0m0,568s
+real	0m28,467s
+user	0m27,964s
+sys	0m0,493s
 ```
 
 The compilation has many `static_assert`-invocations that check the offset of every register in every peripheral. In
