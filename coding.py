@@ -45,15 +45,12 @@ class Coder:
         self.emit_line(' */')
         # Try to assert endianness. The generated code assumes little-endian. While all Cortex-M MCUs seem to be
         # little-endian in practice, and while ARM's own core header files for Cortex-M seem to assume that too,
-        # this assumption is a little dangerous. The generated runtime check code asserts this assumption,
-        # among others, and it is highly recommended to run it at least once per combination MCU/toolchain that you
-        # are using!
+        # this assumption is a little dangerous. Therefore, the endianness (byte-order) is check at compile time too.
         try:
             assert mcu['cpu']['endian'] == 'little'
             print('{} specified as little-endian'.format(mcu['name']))
         except KeyError:   # endianness information not always available, unfortunately
             print('No endianness information found for {}, assuming little-endian'.format(mcu['name']))
-        print('Please double-check endianness assumption by running provided runtime checking function on target!')
         print('Generating code for {} peripherals...\n'.format(len(mcu['peripherals']['peripheral'])))
         self.emit_line('namespace {} {}'.format(self.namespace, '{'))
         for peripheral in mcu['peripherals']['peripheral']:
@@ -75,6 +72,9 @@ class Coder:
         self.emit_line('};\n')
         for peripheral in mcu['peripherals']['peripheral']:
             self.emit_peripheral(peripheral)
+        with open('check_endianness.h') as file:
+            self.output_stream.write(file.read())
+        self.emit_line()
         self.emit_line('#ifdef {}_RUNTIME_CHECK'.format(self.namespace.upper()))
         with open('check_bit_field_mapping.h') as file:
             self.output_stream.write(file.read())

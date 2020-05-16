@@ -49,7 +49,6 @@ $ time python test.py
 [...]
 svd/STM32H7/STM32H743x.svd		->	generated/STM32H7/STM32H743x/mcu.h
 STM32H743x specified as little-endian
-Please double-check endianness assumption by running provided runtime checking function on target!
 Generating code for 128 peripherals...
 
 generated 57 files
@@ -75,7 +74,6 @@ $ time python test.py -c /opt/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
 [...]
 svd/STM32H7/STM32H743x.svd		->	generated/STM32H7/STM32H743x/mcu.h
 STM32H743x specified as little-endian
-Please double-check endianness assumption by running provided runtime checking function on target!
 Generating code for 128 peripherals...
 
 Running: /opt/gcc-arm-none-eabi/bin/arm-none-eabi-gcc -std=c++17 -o /tmp/test.o -c /tmp/test.cpp -I generated/STM32H7/STM32H743x
@@ -111,8 +109,8 @@ But unfortunately, they sometimes do not.
 To handle this issue, `ecg`'s strategy is the following:
 - Only support for little-endian MCUs is provided until further notice.
 - When the SVD file includes endianness information, `ecg` asserts that little-endian is specified.
-- When the SVD file does not include endianness information, `ecg` assumes that little-endian applies. In any case,
-`ecg` provides a runtime checking function and recommends to run it for every combination MCU/toolchain.
+- When the SVD file does not include endianness information, `ecg` assumes that little-endian applies. `ecg` also
+provides a compile time endianness assertion.
 
 Also, at the time of writing, only one of the generated files has been tested in a debugger on target. If you use
 `ecg`, please do not blindly rely on the generated code, check it!
@@ -125,10 +123,8 @@ surprised if `ecg` needed a few adjustments for it to work with other vendors or
 ### What is automatically tested and what is not
 [Travis](https://travis-ci.org/github/amosnier/ecg) automatically runs the tests mentioned above for every commit, i.e.
 successful code generation and successful compilation of the generated code, including many
-`static_assert`-invocations that check the offset of every register in every peripheral in the ARM ABI.
-
-Unfortunately, correct endianness can only be tested at runtime, and it is strongly recommended to run the generated
-runtime checking function.
+`static_assert`-invocations that check the offset of every register in every peripheral in the ARM ABI, as well as
+compile time endianness check.
 
 Also, the generated files can only be as good as the source SVD files. While `ecg` has been seen to help detect
 some errors in SVD files (offset error that break alignment, duplicated register names, invalid field names), many
@@ -307,8 +303,27 @@ Cortex-M header files) assumes a little endian-configuration (according to the
 first field in the `struct` above is always assumed to map bits 0 to 15, i.e. the least significant bits). That
 implicit assumption is quite confusing, seems a little dangerous, and
 [has been reported to ARM as an issue](https://github.com/ARM-software/CMSIS_5/issues/914). The approach taken by `ecg`
-is to provide a bit-field runtime checking function in the generated code (unfortunately, that cannot be done at
-compile time):
+is to assert endianness at compile time:
+```C++
+#ifdef __GNUC__
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error "Unsupported byte order"
+#endif
+#else
+/*
+ * Byte order check is necessary because the bit-fields used in this file assume little-endianness. If you use a
+ * compiler for which the compile time check is not implemented, you could implement it and send a pull request to
+ * the ecg repository, or you could rely on the runtime check below.
+ */
+#warning "Endianness compile time check not implemented for your compiler! "
+"Please implement it or use the runtime check!"
+#endif
+```
+As can be seen, the only provided implementation at the time of writing is for `gcc`. Supporting other compilers
+should be trivial and can be added if necessary.
+ 
+In addition to this compile time assertion, ecg also provides a bit-field runtime checking function in the generated
+code:
 ```C++
 inline void check_bit_field_mapping()
 {
@@ -362,12 +377,11 @@ inline void check_bit_field_mapping()
 			; // bit field mapping problem, halt
 }
 ```
-Running this function at least once per combination MCU/toolchain is HIGHLY RECOMMENDED!
+The paranoid (like me) is encouraged to run this function at least once per combination MCU/toolchain.
 
 #### Alignment
-Alignment is in fact checked as a side effect by the runtime checking function above, but the generated code will force
-alignment checking at compile time for every single register of every single peripheral. For instance, this is how it
-is done for the watchdog peripheral of an arbitrary MCU:
+The generated code will force alignment checking at compile time for every single register of every single peripheral.
+For instance, this is how it is done for the watchdog peripheral of an arbitrary MCU:
 ```C++
 static_assert(offsetof(WWDG, cr_) == 0x0, "padding error");
 static_assert(offsetof(WWDG, cfr_) == 0x4, "padding error");
