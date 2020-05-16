@@ -321,6 +321,16 @@ is to assert endianness at compile time:
 ```
 As can be seen, the only provided implementation at the time of writing is for `gcc`. Supporting other compilers
 should be trivial and can be added if necessary.
+
+In fact, `gcc`'s ARM options include:
+```shell
+-mlittle-endian
+    Generate code for a processor running in little-endian mode. This is the default for all standard configurations.
+-mbig-endian
+    Generate code for a processor running in big-endian mode; the default is to compile code for a little-endian processor.
+```
+
+So the precaution above could be redundant, but as the proverb goes, it is better to be safe than sorry.
  
 In addition to this compile time assertion, ecg also provides a bit-field runtime checking function in the generated
 code:
