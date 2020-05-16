@@ -15,4 +15,4 @@ before_script:
   - arm-none-eabi-gcc --version
 
 script:
-  - python test.py -c arm-none-eabi-gcc
+  - python test.py -c arm-none-eabi-g++
