@@ -75,10 +75,11 @@ class Coder:
         with open('check_endianness.h') as file:
             self.output_stream.write(file.read())
         self.emit_line()
-        self.emit_line('#ifdef {}_RUNTIME_CHECK'.format(self.namespace.upper()))
+        namespace_macro = self.namespace.replace("::", "_").upper()
+        self.emit_line('#ifdef {}_RUNTIME_CHECK'.format(namespace_macro))
         with open('check_bit_field_mapping.h') as file:
             self.output_stream.write(file.read())
-        self.emit_line('#endif // {}_RUNTIME_CHECK'.format(self.namespace.upper()))
+        self.emit_line('#endif // {}_RUNTIME_CHECK'.format(namespace_macro))
         self.emit_line()
         self.emit_line('}')
 
