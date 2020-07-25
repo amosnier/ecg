@@ -1,5 +1,5 @@
 import os
-import ecg
+import ecg4svd
 import sys
 import argparse
 import pathlib
@@ -21,7 +21,7 @@ def main():
                 full_in_path = os.path.join(subdir, in_file)
                 try:
                     full_out_path = os.path.join(out_dir, 'mcu.h')
-                    ecg.generate_code(full_in_path, full_out_path, 'ecg::hal::mcu_support', compiler)
+                    ecg4svd.generate_code(full_in_path, full_out_path, 'ecg::hal::mcu_support', compiler)
                     num_files += 1
                 except Exception:
                     sys.stderr.write('--- Caught exception while parsing {} ---\n'.format(full_in_path))
