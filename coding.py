@@ -45,7 +45,7 @@ class Coder:
         self.emit_line(' */')
         # Try to assert endianness. The generated code assumes little-endian. While all Cortex-M MCUs seem to be
         # little-endian in practice, and while ARM's own core header files for Cortex-M seem to assume that too,
-        # this assumption is a little dangerous. Therefore, the endianness (byte-order) is check at compile time too.
+        # this assumption is a little dangerous. Therefore, the endianness (byte-order) is checked at compile time too.
         try:
             assert mcu['cpu']['endian'] == 'little'
             print('{} specified as little-endian'.format(mcu['name']))
