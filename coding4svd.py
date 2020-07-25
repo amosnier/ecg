@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 
-class Coder:
+class Coder4Svd:
     def __init__(self, input_file, output_file, output_stream, namespace):
         self.input_file = input_file
         self.output_file = output_file

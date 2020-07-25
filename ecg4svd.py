@@ -1,6 +1,6 @@
 import argparse
 import xmltodict
-import coding
+import coding4svd
 import tempfile
 import os
 import pathlib
@@ -11,7 +11,7 @@ def generate_code(svd_file, h_file, namespace, compiler):
     with open(h_file, 'w') as output_stream:
         with open(svd_file) as file:
             doc = xmltodict.parse(file.read())
-        coder = coding.Coder(svd_file, h_file, output_stream, namespace)
+        coder = coding4svd.Coder4Svd(svd_file, h_file, output_stream, namespace)
         coder.emit_mcu(doc['device'])
     if compiler:
         tmp_dir = tempfile.gettempdir()
