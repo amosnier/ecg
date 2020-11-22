@@ -132,7 +132,7 @@ class Coder4Svd:
                     for register in registers_at_offset:
                         emitted_size = max(self.emit_register(register)[1], emitted_size)
                     self.step_backward()
-                    member_name = '{}_'.format(name.lower())
+                    member_name = name.lower()
                     self.emit_line('{} {};\n'.format('}', member_name))
                 static_assert = 'static_assert(offsetof({}, {}) == {:#02x}, "padding error");'
                 static_asserts.append(static_assert.format(peripheral_name, member_name, offset))
@@ -179,7 +179,7 @@ class Coder4Svd:
         self.step_backward()
         # Emit member name with a trailing underscore, because some have been seen to actually conflict with C++
         # reserved words!
-        name = '{}_'.format(register['name'].lower())
+        name = '{}_register'.format(register['name'].lower())
         self.emit_line('{} {};\n'.format('}', name))
         return name, register_num_bits // 8
 
