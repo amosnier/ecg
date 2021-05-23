@@ -1,4 +1,4 @@
-# ecg [![Build Status](https://travis-ci.org/amosnier/ecg.svg?branch=master)](https://travis-ci.org/amosnier/ecg)
+# ecg [![Build Status](https://travis-ci.com/amosnier/ecg.svg?branch=master)](https://travis-ci.com/amosnier/ecg)
 C++ code generator for embedded systems
 ## Name and purpose
 At the moment, `ecg`'s only ability is to generate C++ header files from
