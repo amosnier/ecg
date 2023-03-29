@@ -28026,7 +28026,7 @@ This bit is only valid for the main regulator in range 1 and has no effect on ra
             <register>
                <name>CCR4</name>
                <displayName>CCR4</displayName>
-               <description>DMA channel 3 configuration           register</description>
+               <description>DMA channel 4 configuration           register</description>
                <addressOffset>0x44</addressOffset>
                <size>0x20</size>
                <access>read-write</access>
@@ -28109,7 +28109,7 @@ This bit is only valid for the main regulator in range 1 and has no effect on ra
             <register>
                <name>CCR5</name>
                <displayName>CCR5</displayName>
-               <description>DMA channel 4 configuration           register</description>
+               <description>DMA channel 5 configuration           register</description>
                <addressOffset>0x58</addressOffset>
                <size>0x20</size>
                <access>read-write</access>
@@ -28192,7 +28192,7 @@ This bit is only valid for the main regulator in range 1 and has no effect on ra
             <register>
                <name>CCR6</name>
                <displayName>CCR6</displayName>
-               <description>DMA channel 5 configuration           register</description>
+               <description>DMA channel 6 configuration           register</description>
                <addressOffset>0x6C</addressOffset>
                <size>0x20</size>
                <access>read-write</access>
@@ -28275,7 +28275,7 @@ This bit is only valid for the main regulator in range 1 and has no effect on ra
             <register>
                <name>CCR7</name>
                <displayName>CCR7</displayName>
-               <description>DMA channel 6 configuration           register</description>
+               <description>DMA channel 7 configuration           register</description>
                <addressOffset>0x80</addressOffset>
                <size>0x20</size>
                <access>read-write</access>
@@ -28358,7 +28358,7 @@ This bit is only valid for the main regulator in range 1 and has no effect on ra
             <register>
                <name>CCR8</name>
                <displayName>CCR8</displayName>
-               <description>DMA channel 7 configuration           register</description>
+               <description>DMA channel 8 configuration           register</description>
                <addressOffset>0x94</addressOffset>
                <size>0x20</size>
                <access>read-write</access>
